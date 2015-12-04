@@ -4,26 +4,25 @@ require 'vkontakte_api'
 require 'net/http'
 require 'uri'
 
-CODE = '92cbe94b8c1bfe525d'
-USER_ID = '5720149'
-SAVE_DIR = './downloaded'
-
 VkontakteApi.configure do |config|
   config.app_id     = '4335723'
   config.app_secret = 'DNFgn27cjVZjgAGN3l9o'
 end
 
-# VkontakteApi.authorization_url(scope: [:notify, :friends, :photos], client_id: 4335723)
+CODE = ENV['VK_CODE'] || abort("Please visit #{VkontakteApi.authorization_url(scope: [:audio])} first and set VK_CODE environment variable")
+USER_ID = ENV['VK_ID'] || abort('Please set VK_ID environment variable to your user id')
+SAVE_DIR = './downloaded'
 
-trap('INT') { @interrupted = true }
+trap('INT') do
+  @interrupted = true
+end
 
 begin
   @vk = VkontakteApi.authorize(code: CODE)
 rescue OAuth2::Error => e
   warn e
   warn VkontakteApi.authorization_url(scope: [:audio])
-  warn 'Code expired. Please visit url and update CODE in script.'
-  exit 1
+  abort 'Code expired. Please visit url and update VK_CODE environment variable.'
 end
 
 def download_audio(audio)
